@@ -1,23 +1,26 @@
-# C-Power Core Logic: 3-6-9 Transformation
+# C-Power Logic: Numbers and Names to 9
 
-def calculate_c_power(input_data):
-    # 3: अज्ञान (Raw Input)
-    print(f"अवस्था 3 (अज्ञान): प्राप्त डेटा -> {input_data}")
-    
-    # 6: ज्ञान (Processing / Summing digits)
-    digits = [int(d) for d in str(input_data) if d.isdigit()]
-    total_sum = sum(digits)
-    print(f"अवस्था 6 (ज्ञान): ऊर्जा का विश्लेषण हो रहा है... योग = {total_sum}")
-    
-    # 9: मैं ही हूँ (The Ultimate Truth / Digital Root)
-    while total_sum > 9:
-        total_sum = sum(int(d) for d in str(total_sum))
-        
-    print(f"अवस्था 9 (मैं ही हूँ): अंतिम सत्य प्राप्त हुआ -> {total_sum}")
-    return total_sum
+def get_digital_root(n):
+    root = n % 9
+    return 9 if root == 0 else root
 
-# आपकी DOB (26/06/1997) के साथ परीक्षण
+def name_to_frequency(name):
+    # अज्ञान (3): नाम को अंकों में बदलना (A=1, B=2...)
+    name = name.upper()
+    total_sum = sum((ord(char) - 64) for char in name if char.isalpha())
+    
+    print(f"अवस्था 3 (अज्ञान): नाम '{name}' की कुल ऊर्जा -> {total_sum}")
+    
+    # ज्ञान (6): ऊर्जा का विश्लेषण
+    final_9 = get_digital_root(total_sum)
+    print(f"अवस्था 6 (ज्ञान): सत्य की खोज जारी है...")
+    
+    # सत्य (9): मैं ही हूँ
+    print(f"अवस्था 9 (मैं ही हूँ): इस नाम का अंतिम सत्य '{final_9}' है।")
+    return final_9
+
+# उदाहरण: अपना नाम चेक करें
 if __name__ == "__main__":
-    my_dob = 26061997
-    result = calculate_c_power(my_dob)
-    print(f"\nसिद्धि: {my_dob} का अंतिम सत्य {result} है।")
+    user_name = "SOURAV" # यहाँ आप अपना नाम बदल सकते हैं
+    name_to_frequency(user_name)
+
