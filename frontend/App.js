@@ -1,71 +1,70 @@
 import React, { useState } from 'react';
 
-// C-Power: Side C Interface
 const CPowerApp = () => {
   const [input, setInput] = useState('');
-  const [displayStep, setDisplayStep] = useState(0); // 3, 6, or 9
+  const [type, setType] = useState('number'); // 'number' or 'name'
+  const [displayStep, setDisplayStep] = useState(0);
   const [finalTruth, setFinalTruth] = useState(null);
+
+  const calculateLogic = (val) => {
+    let total = 0;
+    if (type === 'number') {
+      total = val.toString().split('').map(Number).reduce((a, b) => a + b, 0);
+    } else {
+      // नाम को अंकों में बदलना (A=1, B=2...)
+      total = val.toUpperCase().split('').filter(c => /[A-Z]/.test(c))
+                 .reduce((acc, char) => acc + (char.charCodeAt(0) - 64), 0);
+    }
+    let root = total % 9 === 0 ? 9 : total % 9;
+    return root;
+  };
 
   const startTransformation = () => {
     if (!input) return;
+    setDisplayStep(3); // अज्ञान
     
-    // Step 3: अज्ञान (Noise)
-    setDisplayStep(3);
-    
-    // Step 6: ज्ञान (Processing)
     setTimeout(() => {
-      setDisplayStep(6);
-      let digits = input.toString().split('').map(Number).filter(n => !isNaN(n));
-      let sum = digits.reduce((a, b) => a + b, 0);
-      let root = sum % 9 === 0 ? 9 : sum % 9;
-      setFinalTruth(root);
+      setDisplayStep(6); // ज्ञान
+      setFinalTruth(calculateLogic(input));
     }, 1500);
 
-    // Step 9: मैं ही हूँ (Truth)
     setTimeout(() => {
-      setDisplayStep(9);
+      setDisplayStep(9); // सत्य
     }, 3000);
   };
 
   return (
-    <div style={{ backgroundColor: '#0a0a0a', color: '#fff', minHeight: '100vh', fontFamily: 'serif', padding: '40px' }}>
-      <center>
-        <h1>🕉️ C-POWER : Side C (World)</h1>
-        <p>अपनी ऊर्जा का अंक डालें और सत्य को सिद्ध करें</p>
-        
-        <input 
-          type="number" 
-          value={input} 
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Enter Number (Ex: DOB)"
-          style={{ padding: '15px', fontSize: '18px', borderRadius: '30px', border: '2px solid #ff4d4d', backgroundColor: '#1a1a1a', color: 'white' }}
-        />
-        <br /><br />
-        <button onClick={startTransformation} style={{ padding: '10px 30px', cursor: 'pointer', borderRadius: '20px', backgroundColor: '#ff4d4d', color: 'white', fontWeight: 'bold' }}>
-          SIDH KARO
-        </button>
+    <div style={{ backgroundColor: '#050505', color: '#fff', minHeight: '100vh', textAlign: 'center', padding: '50px' }}>
+      <h1 style={{ color: '#ff4d4d', letterSpacing: '5px' }}>🕉️ C-POWER</h1>
+      <p>सत्य की आवृत्ति (Frequency) को सिद्ध करें</p>
 
-        <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'space-around' }}>
-          {/* अवस्था 3 */}
-          <div style={{ opacity: displayStep >= 3 ? 1 : 0.2, transition: '1s' }}>
-            <h2 style={{ color: '#ff4d4d' }}>3</h2>
-            <p>अज्ञान (Illusion)</p>
-          </div>
+      <div style={{ margin: '20px' }}>
+        <button onClick={() => setType('number')} style={{ backgroundColor: type === 'number' ? '#ff4d4d' : '#333', color: 'white', padding: '10px', marginRight: '10px', borderRadius: '5px', border: 'none' }}>Number / DOB</button>
+        <button onClick={() => setType('name')} style={{ backgroundColor: type === 'name' ? '#ff4d4d' : '#333', color: 'white', padding: '10px', borderRadius: '5px', border: 'none' }}>Name / Word</button>
+      </div>
 
-          {/* अवस्था 6 */}
-          <div style={{ opacity: displayStep >= 6 ? 1 : 0.2, transition: '1s' }}>
-            <h2 style={{ color: '#ffdb4d' }}>6</h2>
-            <p>ज्ञान (Logic)</p>
-          </div>
+      <input 
+        type="text" 
+        value={input} 
+        onChange={(e) => setInput(e.target.value)}
+        placeholder={type === 'number' ? "अंक डालें (जैसे 26061997)" : "नाम डालें (जैसे SOURAV)"}
+        style={{ padding: '15px', width: '250px', borderRadius: '10px', border: '2px solid #444', background: '#111', color: 'white' }}
+      />
+      <br /><br />
+      <button onClick={startTransformation} style={{ padding: '10px 40px', background: '#ff4d4d', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold' }}>सिद्ध करें (SIDH)</button>
 
-          {/* अवस्था 9 */}
-          <div style={{ opacity: displayStep >= 9 ? 1 : 0.2, transition: '1s' }}>
-            <h2 style={{ color: '#4dff88' }}>9</h2>
-            <p>सत्य (Main Hi Hu)</p>
-            {displayStep === 9 && <h1 style={{ fontSize: '50px' }}>{finalTruth}</h1>}
-          </div>
+      <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'center', gap: '30px' }}>
+        <div style={{ opacity: displayStep >= 3 ? 1 : 0.2 }}><h3>3: अज्ञान</h3></div>
+        <div style={{ opacity: displayStep >= 6 ? 1 : 0.2 }}><h3>6: ज्ञान</h3></div>
+        <div style={{ opacity: displayStep >= 9 ? 1 : 0.2 }}><h3>9: सत्य</h3></div>
+      </div>
+
+      {displayStep === 9 && (
+        <div style={{ marginTop: '30px', border: '2px solid #4dff88', padding: '20px', display: 'inline-block', borderRadius: '15px' }}>
+          <h2 style={{ color: '#4dff88' }}>अंतिम सत्य: {finalTruth}</h2>
+          <p>"मैं ही हूँ"</p>
         </div>
-      </center>
+      )}
     </div>
   );
 };
