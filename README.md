@@ -1,39 +1,39 @@
-def c_power_logic(input_value):
-    """
-    C-Power Core: 3-6-9 Logic
-    3: अज्ञान (Input/Noise)
-    6: ज्ञान (Processing/Logic)
-    9: मैं ही हूँ (Ultimate Truth/Digital Root)
-    """
-    
-    print(f"--- C-Power Initialization ---")
-    print(f"[3] अज्ञान (Input): {input_value}")
-    
-    # संख्या को अंकों में बदलकर जोड़ना (Processing/Gyan)
-    def get_digital_root(n):
-        print(f"[6] ज्ञान (Processing): Analyzing the frequency of {n}...")
-        if n == 0:
-            return 0
-        # डिजिटल रूट का गणितीय सूत्र (9 का नियम)
-        root = n % 9
-        return 9 if root == 0 else root
+# 🕉️ C-Power (Side C: The World)
 
-    # परिणाम (Saty/9)
-    result = get_digital_root(input_value)
-    
-    print(f"[9] मैं ही हूँ (The Truth): Result is {result}")
-    
-    if result == 9:
-        print("सिद्धि: यह संख्या पूर्णता (9) का हिस्सा है।")
-    else:
-        print(f"सिद्धि: यह {result} के माध्यम से 9 की ओर अग्रसर है।")
-    
-    return result
+**"If you want to find the secrets of the universe, think in terms of energy, frequency and vibration." — Nikola Tesla**
 
-# आपकी DOB (26061997) के साथ परीक्षण
-print("--- Testing with your DOB 26/06/1997 ---")
-my_dob = 26061997
-c_power_logic(my_dob)
+---
 
-print("\n--- Testing with a Random Number ---")
-c_power_logic(12345)
+## 🔱 हमारा दर्शन (The 3-6-9 Philosophy)
+C-Power मात्र एक तकनीकी प्रोजेक्ट नहीं, बल्कि **Side C (दुनिया)** के माध्यम से 'स्व' (Self) को पहचानने की एक डिजिटल यात्रा है। यह प्रोजेक्ट निकोला टेस्ला के गणितीय रहस्यों और भारतीय अद्वैत वेदांत के मेल पर आधारित है।
+
+### 🔢 त्रिकोण की शक्ति:
+*   **3 (अज्ञान / Noise):** यह वह कच्चा डेटा और सांसारिक भ्रम है जिससे हम शुरुआत करते हैं। यह 'शून्य' से 'सृजन' की पहली सीढ़ी है।
+*   **6 (ज्ञान / Process):** यह वह तर्क (Logic) और चेतना है जो डेटा को अर्थ देती है। यह अंधकार से प्रकाश की ओर ले जाने वाला मार्ग है।
+*   **9 (मैं ही हूँ / The Ultimate Truth):** यह पूर्णता का अंक है। ब्रह्मांड का हर हिस्सा अंततः इसी '9' में समाहित है। **"अहं ब्रह्मास्मि"**।
+
+---
+
+## 🧪 गणितीय प्रमाण (Mathematical Proof)
+यह प्रोजेक्ट इस सिद्धांत पर काम करता है कि दुनिया की हर हलचल (संख्या 1 से 8) का अंतिम योग हमेशा **9** ही होता है:
+$$1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 = 36 \rightarrow 3 + 6 = 9$$
+
+मेरी जन्मतिथि **26/06/1997** भी इसी सत्य की पुष्टि करती है, जहाँ '6' (ज्ञान) केंद्र में है और '9' (सत्य) अंतिम लक्ष्य है।
+
+---
+
+## 🛠️ तकनीकी ढांचा (Tech Stack)
+*   **Core Engine:** Python (लॉजिक और एल्गोरिदम के लिए)
+*   **Interface:** React (दुनिया/Side C को विजुअलाइज करने के लिए)
+*   **Logic:** Digital Root Implementation (किसी भी इनपुट को '9' के सत्य तक पहुँचाना)
+
+---
+
+## 🚀 विजन (The Vision)
+**C-Power** का लक्ष्य एक ऐसा डिजिटल दर्पण (Mirror) बनाना है, जिसमें कोई भी इनपुट (अज्ञान) डालने पर वह प्रोसेस होकर अंततः उपयोगकर्ता को उसके असली स्वरूप **'9' (Main hi hu)** का बोध कराए।
+
+> **"सब मुझमें है, और मैं सबमें हूँ।"**
+
+---
+**विकसितकर्ता (Creator):** [sourav8423-sys](https://github.com/sourav8423-sys)  
+**स्थिति (Status):** Initializing the Power of Consciousness...
