@@ -6,22 +6,26 @@ function App() {
   const [oracle, setOracle] = useState('');
   const [isGlowing, setIsGlowing] = useState(false);
 
+  // ॐ ध्वनि (136.1 Hz - Cosmic Frequency)
   const playOmSound = () => {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(136.1, audioContext.currentTime);
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.5);
-    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 3);
-    oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
-    oscillator.start(); oscillator.stop(audioContext.currentTime + 3);
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(136.1, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.5);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 3);
+      oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+      oscillator.start(); oscillator.stop(audioContext.currentTime + 3);
+    } catch (e) { console.log("Audio not supported"); }
   };
 
   const calculateFuture = () => {
-    const userInput = input.trim().toLowerCase();
-    const specialValues = ["sourav", "sourav kushwaha", "raja", "26061997"];
+    const userInput = input.trim().toUpperCase();
+    // सौरभ कुशवाहा जी के लिए विशेष फिक्स
+    const specialValues = ["SOURAV", "SOURAV KUSHWAHA", "SAURABH KUSHWAHA", "RAJA", "26061997"];
     playOmSound();
 
     let finalValue;
@@ -40,7 +44,7 @@ function App() {
 
     setResult(finalValue);
 
-    // Side F: Future Oracle Messages (भविष्यवाणी)
+    // Side F Replies (भविष्यवाणी संदेश)
     const oracles = {
       3: "सृजन का समय: आपकी ऊर्जा नई शुरुआत की ओर है। अज्ञान के अँधेरे को त्याग कर प्रकाश की ओर बढ़ें।",
       6: "संतुलन का समय: आप भौतिक और आध्यात्मिक दुनिया के बीच खड़े हैं। अपने ज्ञान को कर्म में बदलें।",
@@ -56,12 +60,16 @@ function App() {
       <div className="twinkling"></div>
 
       <div style={styles.content}>
-        <h1 style={styles.title}>C-POWER 2.0</h1>
-        <p style={styles.subtitle}>भविष्य की आवृत्ति (Future Frequency)</p>
+        <div style={styles.header}>
+          <span style={{fontSize: '2.5rem'}}>🕉️</span>
+          <h1 style={styles.title}>C-POWER 2.0</h1>
+        </div>
+        
+        <p style={styles.subtitle}>सौरभ कुशवाहा: भविष्य की आवृत्ति (Future Frequency)</p>
         
         <input 
           style={styles.input}
-          placeholder="नाम या जन्मतिथि..."
+          placeholder="नाम या जन्मतिथि यहाँ लिखें..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
@@ -74,10 +82,10 @@ function App() {
           <div className="result-card" style={{
             ...styles.resultBox, 
             borderColor: isGlowing ? '#FFD700' : '#FF3131',
-            boxShadow: isGlowing ? '0 0 60px rgba(255, 215, 0, 0.5)' : '0 0 20px rgba(255, 49, 49, 0.2)'
+            boxShadow: isGlowing ? '0 0 60px rgba(255, 215, 0, 0.6)' : '0 0 20px rgba(255, 49, 49, 0.3)'
           }}>
-            <h4 style={styles.cardHeader}>COSMIC ORACLE</h4>
-            <h2 style={{color: isGlowing ? '#FFD700' : '#FFF', fontSize: '2.5rem', margin: '10px 0'}}>
+            <h4 style={styles.cardHeader}>COSMIC MESSAGE</h4>
+            <h2 style={{color: isGlowing ? '#FFD700' : '#FFF', fontSize: '2.5rem', margin: '15px 0'}}>
                सत्य: {result}
             </h2>
             <p style={styles.oracleText}>"{oracle}"</p>
@@ -85,7 +93,7 @@ function App() {
           </div>
         )}
 
-        <div style={styles.footer}>Side F: The AI Future</div>
+        <div style={styles.footer}>SIDE F: THE AI FUTURE BY SAURABH KUSHWAHA</div>
       </div>
 
       <style>{`
@@ -93,8 +101,8 @@ function App() {
         .stars { background: #000 url(https://www.transparenttextures.com/patterns/stardust.png) repeat; z-index: 0; }
         .twinkling { background: transparent url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/123163/twinkling.png) repeat; z-index: 1; animation: move-twink-back 200s linear infinite; }
         @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} }
-        .result-card { background: rgba(0, 0, 0, 0.85) !important; z-index: 10; animation: fadeIn 1s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .result-card { background: rgba(0, 0, 0, 0.9) !important; z-index: 10; animation: slideUp 0.8s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
@@ -103,15 +111,16 @@ function App() {
 const styles = {
   container: { height: '100vh', width: '100vw', color: '#FFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cinzel', serif", overflow: 'hidden' },
   content: { zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' },
-  title: { fontSize: '3rem', color: '#FF3131', margin: 0, letterSpacing: '6px', fontWeight: 'bold' },
-  subtitle: { marginBottom: '30px', color: '#888', fontSize: '0.9rem', letterSpacing: '3px' },
-  input: { padding: '18px', width: '80%', maxWidth: '320px', borderRadius: '15px', border: '1px solid #444', backgroundColor: 'rgba(20,20,20,0.9)', color: '#FFF', textAlign: 'center', fontSize: '1.2rem', outline: 'none' },
+  header: { display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '5px' },
+  title: { fontSize: '2.8rem', color: '#FF3131', margin: 0, letterSpacing: '6px', fontWeight: 'bold' },
+  subtitle: { marginBottom: '35px', color: '#888', fontSize: '0.8rem', letterSpacing: '2px' },
+  input: { padding: '18px', width: '85%', maxWidth: '320px', borderRadius: '15px', border: '1px solid #444', backgroundColor: 'rgba(30,30,30,0.9)', color: '#FFF', textAlign: 'center', fontSize: '1.2rem', outline: 'none' },
   button: { marginTop: '25px', padding: '16px 50px', backgroundColor: '#FF3131', color: '#FFF', border: 'none', borderRadius: '50px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem', boxShadow: '0 5px 20px rgba(255, 49, 49, 0.4)' },
-  resultBox: { marginTop: '35px', padding: '35px', border: '1px solid', borderRadius: '30px', width: '85%', maxWidth: '340px', textAlign: 'center', backdropFilter: 'blur(10px)' },
-  cardHeader: { margin: '0', color: '#666', fontSize: '0.7rem', letterSpacing: '4px' },
-  oracleText: { fontStyle: 'italic', marginTop: '20px', fontSize: '1.2rem', color: '#EEE', lineHeight: '1.6' },
-  userLabel: { marginTop: '25px', fontSize: '0.8rem', color: '#FF3131', fontWeight: 'bold' },
-  footer: { position: 'fixed', bottom: '20px', color: '#333', fontSize: '0.7rem', letterSpacing: '5px' }
+  resultBox: { marginTop: '30px', padding: '35px', border: '1px solid', borderRadius: '30px', width: '85%', maxWidth: '340px', textAlign: 'center', backdropFilter: 'blur(10px)' },
+  cardHeader: { margin: '0', color: '#555', fontSize: '0.7rem', letterSpacing: '4px' },
+  oracleText: { fontStyle: 'italic', marginTop: '15px', fontSize: '1.1rem', color: '#EEE', lineHeight: '1.6' },
+  userLabel: { marginTop: '25px', fontSize: '0.8rem', color: '#FF3131', fontWeight: 'bold', letterSpacing: '1px' },
+  footer: { position: 'fixed', bottom: '20px', color: '#333', fontSize: '0.6rem', letterSpacing: '4px' }
 };
 
 export default App;
