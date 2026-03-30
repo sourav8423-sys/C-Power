@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>C-Power | 3-6-9 Truth</title>
+  </head>
+  <body>
+    <!-- React इसी 'root' div के अंदर आपकी वेबसाइट को रेंडर करेगा -->
+    <div id="root"></div>
+  </body>
+</html>
