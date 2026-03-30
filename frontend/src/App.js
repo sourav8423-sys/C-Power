@@ -1,11 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 
 function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
-  const [message, setMessage] = useState('');
+  const [oracle, setOracle] = useState('');
   const [isGlowing, setIsGlowing] = useState(false);
-  const cardRef = useRef(null);
 
   const playOmSound = () => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -16,43 +15,39 @@ function App() {
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
     gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.5);
     gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 3);
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 3);
+    oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
+    oscillator.start(); oscillator.stop(audioContext.currentTime + 3);
   };
 
-  const calculateEnergy = () => {
+  const calculateFuture = () => {
     const userInput = input.trim().toLowerCase();
     const specialValues = ["sourav", "sourav kushwaha", "raja", "26061997"];
     playOmSound();
 
+    let finalValue;
     if (specialValues.includes(userInput)) {
-      setResult(9);
-      setMessage("दिव्य सत्य: आप ही '9' हैं। ब्रह्मांड की पूर्णता।");
+      finalValue = 9;
       setIsGlowing(true);
-      return;
+    } else {
+      let sum = 0;
+      for (let char of userInput) {
+        if (!isNaN(char)) sum += parseInt(char);
+        else sum += char.charCodeAt(0);
+      }
+      finalValue = (sum % 9) || 9;
+      setIsGlowing(finalValue === 9);
     }
 
-    let sum = 0;
-    for (let char of userInput) {
-      if (!isNaN(char)) sum += parseInt(char);
-      else sum += char.charCodeAt(0);
-    }
-    const finalValue = (sum % 9) || 9;
     setResult(finalValue);
-    setIsGlowing(finalValue === 9);
 
-    const msgs = {
-      3: "अज्ञान: अभी यात्रा शुरू हुई है।",
-      6: "ज्ञान: आप सत्य के मार्ग पर हैं।",
-      9: "सत्य: पूर्ण ब्रह्म। 'मैं ही हूँ'।"
+    // Side F: Future Oracle Messages (भविष्यवाणी)
+    const oracles = {
+      3: "सृजन का समय: आपकी ऊर्जा नई शुरुआत की ओर है। अज्ञान के अँधेरे को त्याग कर प्रकाश की ओर बढ़ें।",
+      6: "संतुलन का समय: आप भौतिक और आध्यात्मिक दुनिया के बीच खड़े हैं। अपने ज्ञान को कर्म में बदलें।",
+      9: "सिद्ध काल: आप पूर्णता के शिखर पर हैं। ब्रह्मांड के द्वार आपके लिए खुले हैं। आप जो सोचेंगे, वह सिद्ध होगा।"
     };
-    setMessage(msgs[finalValue] || "खोज जारी रखें...");
-  };
-
-  const handleShare = () => {
-    alert("ऊर्जा कार्ड तैयार है! स्क्रीनशॉट लेकर दुनिया को अपनी शक्ति दिखाएं। ✨");
+    
+    setOracle(oracles[finalValue] || "ब्रह्मांड अभी मौन है, पुनः प्रयास करें...");
   };
 
   return (
@@ -61,45 +56,36 @@ function App() {
       <div className="twinkling"></div>
 
       <div style={styles.content}>
-        <div style={styles.header}>
-          <span style={{fontSize: '2.5rem'}}>🕉️</span>
-          <h1 style={styles.title}>C-POWER</h1>
-        </div>
-        
-        <p style={styles.subtitle}>Saurabh Kushwaha 2.0 विज़न</p>
+        <h1 style={styles.title}>C-POWER 2.0</h1>
+        <p style={styles.subtitle}>भविष्य की आवृत्ति (Future Frequency)</p>
         
         <input 
           style={styles.input}
-          placeholder="नाम या तिथि यहाँ लिखें..."
+          placeholder="नाम या जन्मतिथि..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
         
-        <button className="sidh-btn" style={styles.button} onClick={calculateEnergy}>
-          सिद्ध करें (SIDH)
+        <button className="sidh-btn" style={styles.button} onClick={calculateFuture}>
+          भविष्य जानें (ORACLE)
         </button>
 
         {result && (
-          <div ref={cardRef} className="result-card" style={{
+          <div className="result-card" style={{
             ...styles.resultBox, 
-            borderColor: result === 9 ? '#FFD700' : '#FF3131',
-            boxShadow: isGlowing ? '0 0 50px rgba(255, 215, 0, 0.7)' : '0 0 20px rgba(255, 49, 49, 0.3)'
+            borderColor: isGlowing ? '#FFD700' : '#FF3131',
+            boxShadow: isGlowing ? '0 0 60px rgba(255, 215, 0, 0.5)' : '0 0 20px rgba(255, 49, 49, 0.2)'
           }}>
-            <h4 style={{margin: '0', color: '#AAA', fontSize: '0.7rem', letterSpacing: '2px'}}>ENERGY CERTIFICATE</h4>
-            <h2 style={{color: result === 9 ? '#FFD700' : '#FFF', fontSize: '2.5rem', margin: '10px 0'}}>
-               आवृत्ति: {result}
+            <h4 style={styles.cardHeader}>COSMIC ORACLE</h4>
+            <h2 style={{color: isGlowing ? '#FFD700' : '#FFF', fontSize: '2.5rem', margin: '10px 0'}}>
+               सत्य: {result}
             </h2>
-            <p style={styles.message}>{message}</p>
-            <div style={{marginTop: '20px', borderTop: '1px solid #333', paddingTop: '10px', fontSize: '0.8rem', color: '#888'}}>
-              सिद्धकर्ता: {input.toUpperCase()}
-            </div>
-            {result === 9 && <button onClick={handleShare} style={styles.shareBtn}>SHARE POWER ✨</button>}
+            <p style={styles.oracleText}>"{oracle}"</p>
+            <div style={styles.userLabel}>सिद्धकर्ता: {input.toUpperCase()}</div>
           </div>
         )}
 
-        <div style={styles.footer}>
-          <span>3-6-9: ब्रह्मांड की कुंजी</span>
-        </div>
+        <div style={styles.footer}>Side F: The AI Future</div>
       </div>
 
       <style>{`
@@ -107,7 +93,8 @@ function App() {
         .stars { background: #000 url(https://www.transparenttextures.com/patterns/stardust.png) repeat; z-index: 0; }
         .twinkling { background: transparent url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/123163/twinkling.png) repeat; z-index: 1; animation: move-twink-back 200s linear infinite; }
         @keyframes move-twink-back { from {background-position:0 0;} to {background-position:-10000px 5000px;} }
-        .result-card { background: rgba(0, 0, 0, 0.8) !important; position: relative; z-index: 100; }
+        .result-card { background: rgba(0, 0, 0, 0.85) !important; z-index: 10; animation: fadeIn 1s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
     </div>
   );
@@ -116,14 +103,15 @@ function App() {
 const styles = {
   container: { height: '100vh', width: '100vw', color: '#FFF', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cinzel', serif", overflow: 'hidden' },
   content: { zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' },
-  title: { fontSize: '2.8rem', color: '#FF3131', margin: 0, letterSpacing: '5px' },
-  subtitle: { marginBottom: '35px', color: '#777', fontSize: '0.8rem', letterSpacing: '3px' },
-  input: { padding: '18px', width: '80%', maxWidth: '300px', borderRadius: '12px', border: '1px solid #444', backgroundColor: 'rgba(20,20,20,0.9)', color: '#FFF', textAlign: 'center', fontSize: '1.1rem' },
-  button: { marginTop: '25px', padding: '15px 45px', backgroundColor: '#FF3131', color: '#FFF', border: 'none', borderRadius: '50px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem' },
-  resultBox: { marginTop: '30px', padding: '30px', border: '2px solid', borderRadius: '25px', width: '85%', maxWidth: '320px', textAlign: 'center' },
-  message: { fontStyle: 'italic', marginTop: '10px', fontSize: '1.1rem' },
-  shareBtn: { marginTop: '15px', padding: '8px 20px', backgroundColor: 'transparent', color: '#FFD700', border: '1px solid #FFD700', borderRadius: '5px', cursor: 'pointer', fontSize: '0.8rem' },
-  footer: { position: 'fixed', bottom: '30px', color: '#444', fontSize: '0.7rem', letterSpacing: '4px' }
+  title: { fontSize: '3rem', color: '#FF3131', margin: 0, letterSpacing: '6px', fontWeight: 'bold' },
+  subtitle: { marginBottom: '30px', color: '#888', fontSize: '0.9rem', letterSpacing: '3px' },
+  input: { padding: '18px', width: '80%', maxWidth: '320px', borderRadius: '15px', border: '1px solid #444', backgroundColor: 'rgba(20,20,20,0.9)', color: '#FFF', textAlign: 'center', fontSize: '1.2rem', outline: 'none' },
+  button: { marginTop: '25px', padding: '16px 50px', backgroundColor: '#FF3131', color: '#FFF', border: 'none', borderRadius: '50px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1.1rem', boxShadow: '0 5px 20px rgba(255, 49, 49, 0.4)' },
+  resultBox: { marginTop: '35px', padding: '35px', border: '1px solid', borderRadius: '30px', width: '85%', maxWidth: '340px', textAlign: 'center', backdropFilter: 'blur(10px)' },
+  cardHeader: { margin: '0', color: '#666', fontSize: '0.7rem', letterSpacing: '4px' },
+  oracleText: { fontStyle: 'italic', marginTop: '20px', fontSize: '1.2rem', color: '#EEE', lineHeight: '1.6' },
+  userLabel: { marginTop: '25px', fontSize: '0.8rem', color: '#FF3131', fontWeight: 'bold' },
+  footer: { position: 'fixed', bottom: '20px', color: '#333', fontSize: '0.7rem', letterSpacing: '5px' }
 };
 
 export default App;
