@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, getCountFromServer } from "firebase/firestore";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC14P04-PEw4gURFZhYWXT8XGgBw1B219g",
@@ -20,75 +20,84 @@ const provider = new GoogleAuthProvider();
 function App() {
   const [user, setUser] = useState(null);
   const [result, setResult] = useState(null);
-  const [totalSidhs, setTotalSidhs] = useState(0);
-  const [liveFeed, setLiveFeed] = useState([]);
+  const [myHistory, setMyHistory] = useState([]);
 
   useEffect(() => {
-    onAuthStateChanged(auth, (u) => setUser(u));
-
-    // 📈 कुल सिद्धियों की गणना
-    const getTotals = async () => {
-      const snapshot = await getCountFromServer(collection(db, "sidh_records"));
-      setTotalSidhs(snapshot.data().count);
-    };
-    getTotals();
-
-    // 📜 लाइव फीड (Latest 5 Rituals)
-    const q = query(collection(db, "sidh_records"), orderBy("timestamp", "desc"), limit(5));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setLiveFeed(snapshot.docs.map(d => d.data()));
+    const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u) {
+        // 📜 यूजर का व्यक्तिगत इतिहास (Archive) लोड करना
+        const q = query(
+          collection(db, "sidh_records"), 
+          where("uid", "==", u.uid), 
+          orderBy("timestamp", "desc")
+        );
+        onSnapshot(q, (snapshot) => {
+          setMyHistory(snapshot.docs.map(d => d.data()));
+        });
+      }
     });
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
   const calculateSidh = async () => {
-    if (!user) return alert("लॉगिन करें! 🚩");
+    if (!user) return;
     const name = user.displayName.toUpperCase();
     let val = (name.includes("SAURABH") || name === "INDIA") ? 9 : (name.split('').reduce((a, b) => a + b.charCodeAt(0), 0) % 9) || 9;
     setResult(val);
-    await addDoc(collection(db, "sidh_records"), { name, val, photo: user.photoURL, timestamp: serverTimestamp() });
+    
+    // डेटाबेस में UID के साथ सुरक्षित करना
+    await addDoc(collection(db, "sidh_records"), { 
+      name, val, uid: user.uid, photo: user.photoURL, timestamp: serverTimestamp() 
+    });
   };
 
   return (
     <div style={styles.bg}>
-      <div style={styles.liveBar}>
-        <span>🔥 अब तक कुल सिद्धियाँ: {totalSidhs}</span>
-        <div style={styles.feedScroll}>
-          {liveFeed.map((f, i) => (
-            <span key={i} style={styles.feedItem}> ✨ {f.name} ({f.val === 9 ? 'सम्राट' : 'साधक'}) </span>
-          ))}
-        </div>
-      </div>
-
       <div style={styles.card}>
         <h1 style={styles.header}>GOD: Side D</h1>
+        <p style={styles.sub}>THE DIVINE ARCHIVE • SAURABH KUSHWAHA</p>
+
         {!user ? (
           <button style={styles.loginBtn} onClick={() => signInWithPopup(auth, provider)}>Google प्रवेश 🔱</button>
         ) : (
-          <div style={styles.profileBox}>
+          <div style={styles.profileSection}>
             <img src={user.photoURL} alt="P" style={styles.avatar} />
             <h3>प्रणाम, {user.displayName}</h3>
-            <button style={styles.btn} onClick={calculateSidh}>सिद्धि जाग्रत करें 🚩</button>
+            <button style={styles.sidhBtn} onClick={calculateSidh}>सिद्धि जाग्रत करें 🚩</button>
+            <button style={styles.logoutBtn} onClick={() => signOut(auth)}>प्रस्थान</button>
+
+            <div style={styles.archiveBox}>
+              <h4>📜 आपकी दिव्य यात्रा (Archive)</h4>
+              <div style={styles.scrollArea}>
+                {myHistory.map((item, i) => (
+                  <div key={i} style={styles.archiveItem}>
+                    <span>{item.val === 9 ? '👑 सम्राट' : '✨ साधक'}</span>
+                    <span>{item.val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
-        {result && <div style={styles.resBox}>अंक: {result} | {result === 9 ? '👑 सम्राट' : '✨ साधक'}</div>}
       </div>
     </div>
   );
 }
 
 const styles = {
-  bg: { minHeight: '100vh', background: '#000', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial' },
-  liveBar: { width: '100%', padding: '10px', background: 'linear-gradient(90deg, #FF3131, #FF9933)', position: 'fixed', top: 0, textAlign: 'center', fontSize: '0.8rem', fontWeight: 'bold', zIndex: 100 },
-  feedScroll: { marginTop: '5px', overflow: 'hidden', whiteSpace: 'nowrap' },
-  feedItem: { marginLeft: '20px', opacity: 0.9 },
-  card: { textAlign: 'center', padding: '30px', borderRadius: '30px', background: '#111', border: '1px solid #333', width: '320px' },
-  header: { color: '#FF3131', letterSpacing: '3px' },
-  loginBtn: { padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer' },
-  profileBox: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  avatar: { width: '60px', borderRadius: '50%', border: '2px solid #FF3131', margin: '10px' },
-  btn: { padding: '12px 30px', borderRadius: '20px', background: '#FF3131', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' },
-  resBox: { marginTop: '20px', padding: '15px', border: '1px solid #FF9933', borderRadius: '15px', color: '#FFD700' }
+  bg: { minHeight: '100vh', background: '#000', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff', fontFamily: 'Cinzel, serif' },
+  card: { textAlign: 'center', padding: '30px', borderRadius: '40px', background: 'rgba(255,255,255,0.03)', border: '1px solid #333', width: '350px' },
+  header: { color: '#FF3131', letterSpacing: '5px', margin: 0 },
+  sub: { fontSize: '0.5rem', color: '#666', letterSpacing: '2px', marginBottom: '20px' },
+  loginBtn: { padding: '15px 30px', borderRadius: '15px', border: 'none', background: '#fff', fontWeight: 'bold', cursor: 'pointer' },
+  profileSection: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  avatar: { width: '80px', borderRadius: '50%', border: '2px solid #FF9933', marginBottom: '10px' },
+  sidhBtn: { padding: '12px 40px', borderRadius: '50px', background: '#FF3131', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' },
+  logoutBtn: { background: 'none', color: '#444', border: 'none', marginTop: '10px', cursor: 'pointer', fontSize: '0.7rem' },
+  archiveBox: { marginTop: '30px', width: '100%', borderTop: '1px solid #222', paddingTop: '15px' },
+  scrollArea: { maxHeight: '150px', overflowY: 'auto', marginTop: '10px' },
+  archiveItem: { display: 'flex', justifyContent: 'space-between', padding: '10px', background: 'rgba(255,255,255,0.02)', marginBottom: '5px', borderRadius: '10px', fontSize: '0.8rem' }
 };
 
 export default App;
