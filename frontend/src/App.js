@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import confetti from 'canvas-confetti';
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, deleteDoc, doc } from "firebase/firestore";
+import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC14P04-PEw4gURFZhYWXT8XGgBw1B219g",
@@ -9,86 +9,62 @@ const firebaseConfig = {
   projectId: "c-power-db",
   storageBucket: "c-power-db.firebasestorage.app",
   messagingSenderId: "869590340421",
-  appId: "1:869590340421:web:f9b62b67d0b1b00cd5e42c",
-  measurementId: "G-8N816X99HB"
+  appId: "1:869590340421:web:f9b62b67d0b1b00cd5e42c"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
 function App() {
-  const [input, setInput] = useState('');
+  const [user, setUser] = useState(null);
   const [result, setResult] = useState(null);
-  const [oracle, setOracle] = useState('');
-  const [history, setHistory] = useState([]);
-  const [themeColor, setThemeColor] = useState('#000');
-  const [showAdmin, setShowAdmin] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
+  const [themeColor, setThemeColor] = useState('#FF3131');
 
   useEffect(() => {
-    const q = query(collection(db, "sidh_records"), orderBy("timestamp", "desc"), limit(20));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setHistory(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
     });
     return () => unsubscribe();
   }, []);
 
-  const handleSecretClick = () => {
-    setClickCount(prev => prev + 1);
-    if (clickCount + 1 >= 5) {
-      setShowAdmin(!showAdmin);
-      setClickCount(0);
-      alert("प्रणाम स्वामी! एडमिन पैनल जाग्रत हो गया है। 🚩");
-    }
-  };
-
-  const deleteRecord = async (id) => {
-    if(window.confirm("क्या आप इस रिकॉर्ड को साम्राज्य से मिटाना चाहते हैं?")) {
-      await deleteDoc(doc(db, "sidh_records", id));
-    }
-  };
+  const login = () => signInWithPopup(auth, provider);
+  const logout = () => signOut(auth);
 
   const calculateSidh = async () => {
-    const name = input.trim().toUpperCase();
-    if (!name) return;
-    let val = (name === "INDIA" || name === "SAURABH") ? 9 : (name.split('').reduce((a, b) => a + b.charCodeAt(0), 0) % 9) || 9;
+    if (!user) return alert("कृपया पहले दिव्य प्रवेश (Login) करें! 🚩");
+    const name = user.displayName.toUpperCase();
+    let val = (name.includes("SAURABH") || name === "INDIA") ? 9 : (name.split('').reduce((a, b) => a + b.charCodeAt(0), 0) % 9) || 9;
+    
     setResult(val);
     setThemeColor(val === 9 ? '#FF9933' : '#111');
-    if (val === 9) confetti({ particleCount: 150, spread: 70 });
-    await addDoc(collection(db, "sidh_records"), { name, val, timestamp: serverTimestamp() });
+    await addDoc(collection(db, "sidh_records"), { name, val, photo: user.photoURL, timestamp: serverTimestamp() });
   };
 
   return (
     <div style={{...styles.bg, backgroundColor: themeColor}}>
       <div style={styles.card}>
-        <h1 onClick={handleSecretClick} style={styles.header}>C-POWER 2.0</h1>
-        <p style={styles.sub}>PRIVILEGE EDITION • SAURABH KUSHWAHA</p>
+        <h1 style={styles.header}>GOD: Side D</h1>
+        <p style={styles.sub}>GOVERNANCE • SAURABH KUSHWAHA</p>
         
-        {!showAdmin ? (
-          <>
-            <input style={styles.input} placeholder="नाम सिद्ध करें..." value={input} onChange={(e) => setInput(e.target.value)} />
-            <button style={styles.btn} onClick={calculateSidh}>सिद्ध करें 🚩</button>
-            {result && <div style={styles.resBox}><h2>अंक: {result}</h2></div>}
-          </>
+        {!user ? (
+          <button style={styles.loginBtn} onClick={login}>Google से दिव्य प्रवेश करें 🔱</button>
         ) : (
-          <div style={styles.adminBox}>
-            <h3 style={{color: '#FFD700'}}>ब्रह्मांडीय नियंत्रण (ADMIN)</h3>
-            {history.map(item => (
-              <div key={item.id} style={styles.adminItem}>
-                <span>{item.name} ({item.val})</span>
-                <button onClick={() => deleteRecord(item.id)} style={styles.delBtn}>भस्म ⚔️</button>
-              </div>
-            ))}
-            <button onClick={() => setShowAdmin(false)} style={styles.closeBtn}>वापस जाएँ</button>
+          <div style={styles.profileBox}>
+            <img src={user.photoURL} alt="Profile" style={styles.avatar} />
+            <h3>प्रणाम, {user.displayName}!</h3>
+            <button style={styles.btn} onClick={calculateSidh}>अपनी सिद्धि जाग्रत करें 🚩</button>
+            <button style={styles.logoutLink} onClick={logout}>प्रस्थान (Logout)</button>
           </div>
         )}
 
-        <div style={styles.historySection}>
-          <p style={{fontSize: '0.6rem'}}>इतिहास</p>
-          {history.slice(0, 5).map(item => (
-            <div key={item.id} style={styles.historyItem}>{item.name} - {item.val}</div>
-          ))}
-        </div>
+        {result && (
+          <div style={styles.resBox}>
+            <h2 style={{fontSize: '3rem'}}>{result}</h2>
+            <p>{result === 9 ? "सम्राट पद प्राप्त! 👑" : "साधक पद प्राप्त! ✨"}</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -96,18 +72,15 @@ function App() {
 
 const styles = {
   bg: { minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff', transition: '1s' },
-  card: { textAlign: 'center', padding: '30px', borderRadius: '40px', backgroundColor: 'rgba(0,0,0,0.9)', width: '350px', border: '1px solid #333' },
-  header: { fontSize: '2.5rem', color: '#FF3131', cursor: 'pointer', userSelect: 'none' },
-  sub: { fontSize: '0.6rem', color: '#666', marginBottom: '20px' },
-  input: { width: '80%', padding: '12px', borderRadius: '10px', border: '1px solid #444', backgroundColor: '#111', color: '#fff' },
-  btn: { marginTop: '15px', padding: '10px 30px', backgroundColor: '#FF3131', color: '#fff', border: 'none', borderRadius: '50px', cursor: 'pointer' },
-  resBox: { marginTop: '20px', border: '1px solid #FF9933', borderRadius: '15px' },
-  adminBox: { marginTop: '20px', textAlign: 'left', maxHeight: '300px', overflowY: 'auto' },
-  adminItem: { display: 'flex', justifyContent: 'space-between', padding: '10px', borderBottom: '1px solid #222', fontSize: '0.8rem' },
-  delBtn: { backgroundColor: '#440000', color: '#FF0000', border: '1px solid #FF0000', borderRadius: '5px', cursor: 'pointer', fontSize: '0.6rem' },
-  closeBtn: { marginTop: '15px', width: '100%', padding: '10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '10px' },
-  historySection: { marginTop: '20px', borderTop: '1px solid #222' },
-  historyItem: { fontSize: '0.7rem', padding: '5px' }
+  card: { textAlign: 'center', padding: '40px', borderRadius: '40px', backgroundColor: 'rgba(0,0,0,0.95)', width: '350px', border: '1px solid #333' },
+  header: { fontSize: '2.5rem', color: '#FF3131', letterSpacing: '4px' },
+  sub: { fontSize: '0.6rem', color: '#666', marginBottom: '30px' },
+  loginBtn: { padding: '15px 30px', backgroundColor: '#fff', color: '#000', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' },
+  profileBox: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
+  avatar: { width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #FF3131', marginBottom: '15px' },
+  btn: { padding: '12px 40px', backgroundColor: '#FF3131', color: '#fff', border: 'none', borderRadius: '50px', cursor: 'pointer', fontWeight: 'bold' },
+  logoutLink: { marginTop: '20px', background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline' },
+  resBox: { marginTop: '25px', padding: '20px', border: '1px solid #FF9933', borderRadius: '25px' }
 };
 
 export default App;
