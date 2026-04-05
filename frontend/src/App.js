@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "firebase/firestore";
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, getCountFromServer } from "firebase/firestore";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC14P04-PEw4gURFZhYWXT8XGgBw1B219g",
@@ -20,67 +20,75 @@ const provider = new GoogleAuthProvider();
 function App() {
   const [user, setUser] = useState(null);
   const [result, setResult] = useState(null);
-  const [themeColor, setThemeColor] = useState('#FF3131');
+  const [totalSidhs, setTotalSidhs] = useState(0);
+  const [liveFeed, setLiveFeed] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    onAuthStateChanged(auth, (u) => setUser(u));
+
+    // 📈 कुल सिद्धियों की गणना
+    const getTotals = async () => {
+      const snapshot = await getCountFromServer(collection(db, "sidh_records"));
+      setTotalSidhs(snapshot.data().count);
+    };
+    getTotals();
+
+    // 📜 लाइव फीड (Latest 5 Rituals)
+    const q = query(collection(db, "sidh_records"), orderBy("timestamp", "desc"), limit(5));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setLiveFeed(snapshot.docs.map(d => d.data()));
     });
     return () => unsubscribe();
   }, []);
 
-  const login = () => signInWithPopup(auth, provider);
-  const logout = () => signOut(auth);
-
   const calculateSidh = async () => {
-    if (!user) return alert("कृपया पहले दिव्य प्रवेश (Login) करें! 🚩");
+    if (!user) return alert("लॉगिन करें! 🚩");
     const name = user.displayName.toUpperCase();
     let val = (name.includes("SAURABH") || name === "INDIA") ? 9 : (name.split('').reduce((a, b) => a + b.charCodeAt(0), 0) % 9) || 9;
-    
     setResult(val);
-    setThemeColor(val === 9 ? '#FF9933' : '#111');
     await addDoc(collection(db, "sidh_records"), { name, val, photo: user.photoURL, timestamp: serverTimestamp() });
   };
 
   return (
-    <div style={{...styles.bg, backgroundColor: themeColor}}>
+    <div style={styles.bg}>
+      <div style={styles.liveBar}>
+        <span>🔥 अब तक कुल सिद्धियाँ: {totalSidhs}</span>
+        <div style={styles.feedScroll}>
+          {liveFeed.map((f, i) => (
+            <span key={i} style={styles.feedItem}> ✨ {f.name} ({f.val === 9 ? 'सम्राट' : 'साधक'}) </span>
+          ))}
+        </div>
+      </div>
+
       <div style={styles.card}>
         <h1 style={styles.header}>GOD: Side D</h1>
-        <p style={styles.sub}>GOVERNANCE • SAURABH KUSHWAHA</p>
-        
         {!user ? (
-          <button style={styles.loginBtn} onClick={login}>Google से दिव्य प्रवेश करें 🔱</button>
+          <button style={styles.loginBtn} onClick={() => signInWithPopup(auth, provider)}>Google प्रवेश 🔱</button>
         ) : (
           <div style={styles.profileBox}>
-            <img src={user.photoURL} alt="Profile" style={styles.avatar} />
-            <h3>प्रणाम, {user.displayName}!</h3>
-            <button style={styles.btn} onClick={calculateSidh}>अपनी सिद्धि जाग्रत करें 🚩</button>
-            <button style={styles.logoutLink} onClick={logout}>प्रस्थान (Logout)</button>
+            <img src={user.photoURL} alt="P" style={styles.avatar} />
+            <h3>प्रणाम, {user.displayName}</h3>
+            <button style={styles.btn} onClick={calculateSidh}>सिद्धि जाग्रत करें 🚩</button>
           </div>
         )}
-
-        {result && (
-          <div style={styles.resBox}>
-            <h2 style={{fontSize: '3rem'}}>{result}</h2>
-            <p>{result === 9 ? "सम्राट पद प्राप्त! 👑" : "साधक पद प्राप्त! ✨"}</p>
-          </div>
-        )}
+        {result && <div style={styles.resBox}>अंक: {result} | {result === 9 ? '👑 सम्राट' : '✨ साधक'}</div>}
       </div>
     </div>
   );
 }
 
 const styles = {
-  bg: { minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#fff', transition: '1s' },
-  card: { textAlign: 'center', padding: '40px', borderRadius: '40px', backgroundColor: 'rgba(0,0,0,0.95)', width: '350px', border: '1px solid #333' },
-  header: { fontSize: '2.5rem', color: '#FF3131', letterSpacing: '4px' },
-  sub: { fontSize: '0.6rem', color: '#666', marginBottom: '30px' },
-  loginBtn: { padding: '15px 30px', backgroundColor: '#fff', color: '#000', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' },
+  bg: { minHeight: '100vh', background: '#000', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Arial' },
+  liveBar: { width: '100%', padding: '10px', background: 'linear-gradient(90deg, #FF3131, #FF9933)', position: 'fixed', top: 0, textAlign: 'center', fontSize: '0.8rem', fontWeight: 'bold', zIndex: 100 },
+  feedScroll: { marginTop: '5px', overflow: 'hidden', whiteSpace: 'nowrap' },
+  feedItem: { marginLeft: '20px', opacity: 0.9 },
+  card: { textAlign: 'center', padding: '30px', borderRadius: '30px', background: '#111', border: '1px solid #333', width: '320px' },
+  header: { color: '#FF3131', letterSpacing: '3px' },
+  loginBtn: { padding: '10px 20px', borderRadius: '10px', border: 'none', cursor: 'pointer' },
   profileBox: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
-  avatar: { width: '80px', height: '80px', borderRadius: '50%', border: '2px solid #FF3131', marginBottom: '15px' },
-  btn: { padding: '12px 40px', backgroundColor: '#FF3131', color: '#fff', border: 'none', borderRadius: '50px', cursor: 'pointer', fontWeight: 'bold' },
-  logoutLink: { marginTop: '20px', background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline' },
-  resBox: { marginTop: '25px', padding: '20px', border: '1px solid #FF9933', borderRadius: '25px' }
+  avatar: { width: '60px', borderRadius: '50%', border: '2px solid #FF3131', margin: '10px' },
+  btn: { padding: '12px 30px', borderRadius: '20px', background: '#FF3131', color: '#fff', fontWeight: 'bold', border: 'none', cursor: 'pointer' },
+  resBox: { marginTop: '20px', padding: '15px', border: '1px solid #FF9933', borderRadius: '15px', color: '#FFD700' }
 };
 
 export default App;
